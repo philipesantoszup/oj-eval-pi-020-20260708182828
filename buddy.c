@@ -139,17 +139,7 @@ int return_pages(void *p) {
         // Buddy must be free and have the same rank
         if (allocated_map[buddy_idx] || rank_map[buddy_idx] != curr_rank) break;
 
-        // Check if buddy_p is actually in the free list of curr_rank
-        bool found = false;
-        free_block_t *head = free_lists[curr_rank];
-        while (head) {
-            if (head == (free_block_t *)buddy_p) {
-                found = true;
-                break;
-            }
-            head = head->next;
-        }
-        if (!found) break;
+
 
         remove_from_list(curr_rank, buddy_p);
         
