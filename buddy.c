@@ -167,16 +167,11 @@ int query_ranks(void *p) {
 
     if (allocated_map[idx]) return rank_map[idx];
 
-    // Optimization for query_ranks: Instead of iterating free lists, we can use something faster. 
-    // But let's first try to avoid TLE by other means if possible. 
-    // Actually, let's use a simpler way to find the free block's rank if we can.
-    // For now, let's just optimize the free list search specifically for this problem's constraints.
     for (int r = MAX_RANK; r >= 1; r--) {
         free_block_t *curr = free_lists[r];
         while (curr) {
             uintptr_t b_addr = (uintptr_t)curr;
-            uintptr_t b_end = b_addr + (1UL << (r - 1)) * PAGE_SIZE;
-            if ((uintptr_t)p >= b_addr && (uintptr_t)p < b_end) {
+            if ((uintptr_t)p >= b_addr && (uintptr_t)p < b_addr + (1UL << (r - 1)) * PAGE_SIZE) {
                 return r;
             }
             curr = curr->next;
