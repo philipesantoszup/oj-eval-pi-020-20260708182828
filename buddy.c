@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #define PAGE_SIZE (4 * 1024)
 #define MAX_RANK 16
