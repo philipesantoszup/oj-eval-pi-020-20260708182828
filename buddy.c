@@ -101,10 +101,7 @@ void *alloc_pages(int rank) {
         int size = (1 << (search_rank - 1));
         void *buddy = (char *)block + (uintptr_t)size * PAGE_SIZE;
         add_to_list(search_rank, buddy);
-        // We don't mark rank_map for free blocks here because the buddy system
-        // usually cares about the rank of a block when it's allocated or for queries.
-        // But rank_map should represent the current state of the memory.
-        // Let's manage rank_map consistently.
+        rank_map[get_block_index(buddy)] = search_rank;
     }
 
     int idx = get_block_index(block);
@@ -167,16 +164,9 @@ int query_ranks(void *p) {
 
     if (allocated_map[idx]) return rank_map[idx];
 
-    for (int r = MAX_RANK; r >= 1; r--) {
-        free_block_t *curr = free_lists[r];
-        while (curr) {
-            uintptr_t b_addr = (uintptr_t)curr;
-            if ((uintptr_t)p >= b_addr && (uintptr_t)p < b_addr + (1UL << (r - 1)) * PAGE_SIZE) {
-                return r;
-            }
-            curr = curr->next;
-        }
-    }
+    // rank_map can be used for free blocks too if we update it correctly during splits and merges.
+    // Let's use rank_map[idx] even for free blocks by updating it during alloc_pages and return_pages.
+    return rank_map[idx];
 
     return -EINVAL;
 }
