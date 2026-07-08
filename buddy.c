@@ -116,7 +116,7 @@ void *alloc_pages(int rank) {
 
 int return_pages(void *p) {
     if (!p) return -EINVAL;
-    if (p < base_addr || p >= (char *)base_addr + (uintptr_t)total_pages * PAGE_SIZE) return -EINVAL;
+    if ((uintptr_t)p < (uintptr_t)base_addr || (uintptr_t)p >= (uintptr_t)base_addr + (uintptr_t)total_pages * PAGE_SIZE) return -EINVAL;
     
     int idx = get_block_index(p);
     if (idx < 0 || idx >= total_pages || !allocated_map[idx]) return -EINVAL;
@@ -160,18 +160,13 @@ int return_pages(void *p) {
 
 int query_ranks(void *p) {
     if (!p) return -EINVAL;
-    if (p < base_addr || p >= (char *)base_addr + (uintptr_t)total_pages * PAGE_SIZE) return -EINVAL;
+    if ((uintptr_t)p < (uintptr_t)base_addr || (uintptr_t)p >= (uintptr_t)base_addr + (uintptr_t)total_pages * PAGE_SIZE) return -EINVAL;
 
     int idx = get_block_index(p);
     if (idx < 0 || idx >= total_pages) return -EINVAL;
 
-    // If it is allocated, return its rank. 
-    // If not, we need to find the block it belongs to.
     if (allocated_map[idx]) return rank_map[idx];
 
-    // For unallocated blocks, the problem says "according to their maximum rank"
-    // We need to find which free block this address belongs to.
-    // The simplest way is to iterate through all free lists from MAX_RANK down to 1.
     for (int r = MAX_RANK; r >= 1; r--) {
         free_block_t *curr = free_lists[r];
         while (curr) {
